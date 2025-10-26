@@ -7,8 +7,8 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'ExtendedDemoSignalsPlugin',
-      fileName: (format) => `index.${format === 'cjs' ? 'js' : format}`,
-      formats: ['cjs']
+      fileName: (format) => `index.js`,
+      formats: ['es']
     },
     target: 'node14',
     minify: 'terser'
