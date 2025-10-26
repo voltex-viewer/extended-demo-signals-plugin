@@ -1,5 +1,6 @@
 {
   "name": "@voltex-viewer/extended-demo-signals-plugin",
+  "displayName": "Extended Demo Signals",
   "version": "1.0.0",
   "type": "module",
   "description": "Extended demo signals plugin for Voltex with additional waveform types and configuration options",

@@ -19,11 +19,20 @@ async function createPackage() {
 
   // Read manifest data from package.json
   const packageData = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+  
+  const repoUrl = packageData.repository?.url || (typeof packageData.repository === 'string' ? packageData.repository : null);
+  if (!repoUrl) {
+    console.error('Repository URL not found in package.json');
+    process.exit(1);
+  }
+  
   const manifest = {
     voltexApiVersion: packageData.dependencies['@voltex-viewer/plugin-api'],
     main: 'index.js',
     name: packageData.name,
-    version: packageData.version
+    displayName: packageData.displayName,
+    version: packageData.version,
+    url: repoUrl
   };
   
   // Write generated manifest to dist directory
@@ -34,8 +43,10 @@ async function createPackage() {
   
   console.log(`Generated manifest with:`);
   console.log(`  Name: ${manifest.name}`);
+  console.log(`  Display Name: ${manifest.displayName}`);
   console.log(`  Version: ${manifest.version}`);
   console.log(`  Voltex API Version: ${manifest.voltexApiVersion}`);
+  console.log(`  URL: ${manifest.url}`);
 
   // Create the plugin package
   const output = fs.createWriteStream(outputPath);
