@@ -1,10 +1,14 @@
 import { 
     PluginContext, 
     RenderMode, 
-    SignalSource, 
-    FunctionSignal, 
-    FunctionTimeSequence 
+    SignalBackend,
+    SignalSource
 } from '@voltex-viewer/plugin-api';
+import {
+    FunctionTimeSequence,
+    FunctionValueSequence,
+    SequenceSignal
+} from '@voltex-viewer/signal-utils';
 import * as t from 'io-ts';
 
 // Configuration schema for the plugin
@@ -25,41 +29,49 @@ export default (context: PluginContext): void => {
     });
 
     const time = new FunctionTimeSequence(config.timespan, config.sampleCount);
-    const sources: SignalSource[] = [];
+    const sources: SignalSource<SignalBackend>[] = [];
 
     // Damped Sine Wave
-    const dampedSineSource: SignalSource = {
+    const dampedSineSource: SignalSource<SignalBackend> = {
         name: ['Extended Demo', 'Damped Sine'],
-        signal: () => new FunctionSignal(
+        signal: () => Promise.resolve(new SequenceSignal(
             dampedSineSource,
             time,
-            (t: number) => config.amplitude * Math.exp(-t / (config.timespan * 0.3)) * Math.sin(2 * Math.PI * config.frequency * 3 * t),
-            -config.amplitude,
-            config.amplitude
-        ),
-        renderHint: RenderMode.Lines,
+            new FunctionValueSequence(
+                (t: number) => config.amplitude * Math.exp(-t / (config.timespan * 0.3)) * Math.sin(2 * Math.PI * config.frequency * 3 * t),
+                time,
+                -config.amplitude,
+                config.amplitude
+            ),
+            RenderMode.Lines,
+            () => false
+        )),
     };
     sources.push(dampedSineSource);
 
     // Chirp Signal (frequency sweep)
-    const chirpSource: SignalSource = {
+    const chirpSource: SignalSource<SignalBackend> = {
         name: ['Extended Demo', 'Chirp Signal'],
-        signal: () => new FunctionSignal(
+        signal: () => Promise.resolve(new SequenceSignal(
             chirpSource,
             time,
-            (t: number) => {
-                const f0 = config.frequency;
-                const f1 = config.frequency * 10;
-                const instantFreq = f0 + (f1 - f0) * t / config.timespan;
-                return config.amplitude * Math.sin(2 * Math.PI * instantFreq * t);
-            },
-            -config.amplitude,
-            config.amplitude
-        ),
-        renderHint: RenderMode.Lines,
+            new FunctionValueSequence(
+                (t: number) => {
+                    const f0 = config.frequency;
+                    const f1 = config.frequency * 10;
+                    const instantFreq = f0 + (f1 - f0) * t / config.timespan;
+                    return config.amplitude * Math.sin(2 * Math.PI * instantFreq * t);
+                },
+                time,
+                -config.amplitude,
+                config.amplitude
+            ),
+            RenderMode.Lines,
+            () => false
+        )),
     };
     sources.push(chirpSource);
 
     // Add all signal sources
-    context.signalSources.add(...sources);
+    context.signalSources.add(sources);
 };
